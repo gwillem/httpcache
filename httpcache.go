@@ -10,6 +10,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -191,13 +192,13 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 		if _, ok := reqCacheControl["only-if-cached"]; ok {
 			resp = newGatewayTimeoutResponse(req)
 		} else {
+			fmt.Println("httpcache: Fetching real url", req.URL)
 			resp, err = transport.RoundTrip(req)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
-
 	if cacheable && canStore(parseCacheControl(req.Header), parseCacheControl(resp.Header)) {
 		for _, varyKey := range headerAllCommaSepValues(resp.Header, "vary") {
 			varyKey = http.CanonicalHeaderKey(varyKey)
@@ -422,12 +423,12 @@ func getEndToEndHeaders(respHeaders http.Header) []string {
 }
 
 func canStore(reqCacheControl, respCacheControl cacheControl) (canStore bool) {
-	if _, ok := respCacheControl["no-store"]; ok {
-		return false
-	}
-	if _, ok := reqCacheControl["no-store"]; ok {
-		return false
-	}
+	// if _, ok := respCacheControl["no-store"]; ok {
+	// 	return false
+	// }
+	// if _, ok := reqCacheControl["no-store"]; ok {
+	// 	return false
+	// }
 	return true
 }
 
