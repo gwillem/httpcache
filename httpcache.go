@@ -158,31 +158,7 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 		}
 
 		if varyMatches(cachedResp, req) {
-			// Can only use cached value if the new request doesn't Vary significantly
-			freshness := getFreshness(cachedResp.Header, req.Header)
-			if freshness == fresh {
-				return cachedResp, nil
-			}
-
-			if freshness == stale {
-				var req2 *http.Request
-				// Add validators if caller hasn't already done so
-				etag := cachedResp.Header.Get("etag")
-				if etag != "" && req.Header.Get("etag") == "" {
-					req2 = cloneRequest(req)
-					req2.Header.Set("if-none-match", etag)
-				}
-				lastModified := cachedResp.Header.Get("last-modified")
-				if lastModified != "" && req.Header.Get("last-modified") == "" {
-					if req2 == nil {
-						req2 = cloneRequest(req)
-					}
-					req2.Header.Set("if-modified-since", lastModified)
-				}
-				if req2 != nil {
-					req = req2
-				}
-			}
+			return cachedResp, nil
 		}
 
 		resp, err = transport.RoundTrip(req)
